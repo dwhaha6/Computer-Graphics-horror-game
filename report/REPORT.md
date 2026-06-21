@@ -1,7 +1,7 @@
 # Computer Graphics 기말 과제_강동욱 리포트
 
-> 컴퓨터그래픽스 최종 과제 · **Three.js (WebGL2)** 기반 1인칭 방탈출 공포 게임
-> 핵심 GI 기술: **DDGI (Dynamic Diffuse Global Illumination)** 직접 구현
+> 컴퓨터그래픽스 최종 과제 · **Three.js (WebGL2)** 기반 1인칭 방탈출 공포 게임  
+> 핵심 GI 기술: **DDGI (Dynamic Diffuse Global Illumination)** 직접 구현  
 > 레퍼런스: 바이오하자드 7 (Baker 가족 식사 씬)
 >
 > 🔗 **플레이 링크:** https://dwhaha6.github.io/Computer-Graphics-horror-game/
