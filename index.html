@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>She Won't Let You Leave</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+      #app { position: fixed; inset: 0; }
+      canvas { display: block; width: 100%; height: 100%; }
+
+      /* Crosshair */
+      #crosshair {
+        position: fixed; left: 50%; top: 50%; width: 6px; height: 6px;
+        margin: -3px 0 0 -3px; border-radius: 50%;
+        background: rgba(255,255,255,0.55); pointer-events: none;
+        mix-blend-mode: difference; display: none;
+      }
+
+      /* Start / pause overlay */
+      #overlay {
+        position: fixed; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 1.2rem;
+        background: radial-gradient(circle at center, rgba(20,8,4,0.85), rgba(0,0,0,0.96));
+        color: #c9b8a0; font-family: Georgia, 'Times New Roman', serif;
+        text-align: center; z-index: 10; cursor: pointer; user-select: none;
+      }
+      #overlay h1 { font-size: 2.4rem; letter-spacing: 0.12em; color: #b03a2e; text-shadow: 0 0 18px rgba(120,20,10,0.7); }
+      #overlay p  { font-size: 1rem; max-width: 34rem; line-height: 1.6; opacity: 0.8; }
+      #overlay .hint { font-size: 0.85rem; opacity: 0.55; margin-top: 0.5rem; }
+      #overlay.hidden { display: none; }
+
+      /* HUD */
+      #hud {
+        position: fixed; left: 0; right: 0; bottom: 0; padding: 14px 18px;
+        display: flex; justify-content: space-between; align-items: flex-end;
+        font-family: ui-monospace, 'Courier New', monospace; color: #d8c8b0;
+        text-shadow: 0 1px 3px #000; pointer-events: none; font-size: 0.85rem;
+      }
+      #subtitle {
+        position: fixed; left: 50%; bottom: 64px; transform: translateX(-50%);
+        max-width: 70%; text-align: center; color: #e8ddc8;
+        font-family: Georgia, serif; font-size: 1.05rem; text-shadow: 0 2px 6px #000;
+        opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+      }
+      #loading { font-family: ui-monospace, monospace; font-size: 0.9rem; opacity: 0.7; }
+    </style>
+    <script type="module" crossorigin src="./assets/index-Cs3wkQCq.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="crosshair"></div>
+    <div id="subtitle"></div>
+    <div id="hud">
+      <div id="hud-left"></div>
+      <div id="hud-right"></div>
+    </div>
+
+    <div id="overlay">
+      <h1>She Won't Let You Leave</h1>
+      <p>당신은 의자에 묶인 채 깨어났다. 이 방에서 나가야 한다.</p>
+      <div id="loading">클릭하여 시작 · WASD 이동 · 마우스 시선 · E 상호작용</div>
+      <div class="hint">(소리를 켜고 플레이하세요)</div>
+    </div>
+
+  </body>
+</html>

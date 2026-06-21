@@ -1,0 +1,7 @@
+node_modules
+dist
+*.local
+.DS_Store
+.vite
+# large source assets kept out of git; only optimized assets in public/ are committed
+/raw_assets
