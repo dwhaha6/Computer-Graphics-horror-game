@@ -1,13 +1,18 @@
 # 할머니의 저녁식사 (Escape the Grandmother)
 
-RE7(바이오하자드 7) 식사 씬에서 영감을 받은 **방탈출 공포 게임**. Three.js(WebGL2) 위에서 동작하는 **실시간 DDGI(Dynamic Diffuse Global Illumination)** 를 직접 구현해 어두운 실내의 간접광·color bleeding으로 공포 분위기를 만든다.
+**방탈출 공포 게임**. Three.js(WebGL2) 위에서 동작하는 **실시간 DDGI(Dynamic Diffuse Global Illumination)** 를 직접 구현해 어두운 실내의 간접광·color bleeding으로 공포 분위기를 만든다.
 
 > 컴퓨터그래픽스 최종 과제. GI 기술: **DDGI** (프로브 기반 동적 확산 전역조명).
+
+## 빠른 실행
+**주의**: Edge에서 제작한 Game이기에 Chrome에선 약간의 끊김현상이 있을 수 있습니다, Edge에서 play할 것을 권장드립니다.(Chrome에서도 플레이 자체에 지장은 없습니다.)
+
+> https://dwhaha6.github.io/Computer-Graphics-horror-game/
 
 ## 실행
 
 ```bash
-npm install
+npm install2
 npm run dev      # 개발 서버 (http://localhost:5173)
 npm run build    # 정적 빌드 → dist/
 npm run preview  # 빌드 결과 미리보기

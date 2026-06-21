@@ -951,23 +951,36 @@ const post = new Post(renderer, scene, camera);
 // ---------------------------------------------------------------------------
 const overlay = document.getElementById('overlay');
 const crosshair = document.getElementById('crosshair');
-// Title music tries to start on load; a single click enters the game (music off).
-// (Browsers block audio before any gesture — once your browser has granted this
-// page autoplay it plays immediately; otherwise it begins on your first click.)
+// Content-warning gate shown first. Clicking it IS the user gesture that lets the
+// browser unlock audio — so the title BGM reliably plays on the title screen
+// afterwards (a single click from the title then enters the game).
 let titleBgm = null, gameEntered = false;
-audio.resume();
-audio.loadAll(['bgm_start']).then(() => {
-  if (!gameEntered && audio.ctx.state === 'running') titleBgm = audio.loop('bgm_start', 0.5);
-});
+if (!location.search.includes('auto')) {
+  const warnEl = document.createElement('div');
+  warnEl.style.cssText = 'position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:#000;cursor:pointer;font-family:Georgia,serif;text-align:center;color:#c9b8a0;padding:8%';
+  warnEl.innerHTML =
+    '<div style="font-size:2.2rem;letter-spacing:.12em;color:#b03a2e;text-shadow:0 0 18px rgba(150,20,10,.7)">⚠ 경고</div>' +
+    '<div style="font-size:1.1rem;line-height:1.9;max-width:40rem;opacity:.92">이 게임에는 <b>공포 요소와 잔혹한 묘사, 갑작스러운 비명·큰 소리</b>가 포함되어 있습니다.<br><span style="color:#d98a7a">심약자 · 임산부 · 심장이 약하신 분</span>께는 플레이를 권장하지 않습니다.</div>' +
+    '<div style="font-size:.98rem;opacity:.78">🔊 소리가 갑자기 커질 수 있으니, 시작 전 <b>볼륨을 적절히 낮춰</b> 주세요.</div>' +
+    '<div style="font-size:.9rem;opacity:.5;margin-top:10px">— 클릭하여 계속 —</div>';
+  document.body.appendChild(warnEl);
+  warnEl.addEventListener('click', () => {
+    audio.resume();                                          // first gesture → unlocks audio
+    audio.loadAll(['bgm_start']).then(() => { if (!gameEntered) titleBgm = audio.loop('bgm_start', 0.5); });
+    warnEl.remove();                                         // reveal the title screen, BGM now playing
+  }, { once: true });
+}
 overlay.addEventListener('click', () => {
   gameEntered = true;
   if (titleBgm) { titleBgm.stop(); titleBgm = null; }
-  player.lock();                                    // single click → enter the game
+  player.lock();                                    // single click from the title → enter the game
 });
 let ambientAudio = null, heartbeatAudio = null, audioStarted = false;
 let scareTimer = 20 + Math.random() * 22;   // next random ambient dread cue (s)
+let paused = false;                          // ESC pause → freezes the whole game (incl. the captor timer)
 player.controls.addEventListener('lock', () => {
   overlay.classList.add('hidden'); crosshair.style.display = 'block';
+  paused = false;                            // resume
   audio.resume();
   if (titleBgm) { titleBgm.stop(); titleBgm = null; }   // ensure title music is off in-game
   if (!audioStarted) {
@@ -977,8 +990,10 @@ player.controls.addEventListener('lock', () => {
   }
 });
 player.controls.addEventListener('unlock', () => {
-  if (lockUIOpen || letterUIOpen || inventory.isOpen || dialogueOpen || chairChoiceOpen) return; // mouse UI open — keep start menu hidden
+  if (lockUIOpen || letterUIOpen || inventory.isOpen || dialogueOpen || chairChoiceOpen) return; // mouse UI open — not a pause
   overlay.classList.remove('hidden'); crosshair.style.display = 'none';
+  paused = true;                             // ESC → pause menu → freeze everything
+  try { if (audio.ctx.state === 'running') audio.ctx.suspend(); } catch (e) {} // silence while paused
 });
 
 // ?auto : skip the start overlay and just render (no pointer lock). Used by the
@@ -1003,6 +1018,26 @@ if (DEBUG) {
     camera.position.set(2.5, 2.5, 2.5);   // inside the +x/+z corner
     camera.lookAt(-0.8, 0.7, -0.8);       // across the room toward the shelf
   }
+}
+
+// ?probes : visualise the DDGI probe grid as glowing dots (report capture).
+//   Best combined with ?debug (overview camera, brightened, no fog): ?debug&probes
+if (location.search.includes('probes') && ddgi) {
+  const c = ddgi.counts, v = new THREE.Vector3(), m = new THREE.Matrix4();
+  const total = c.x * c.y * c.z;
+  const inst = new THREE.InstancedMesh(                       // each probe as a small glowing sphere
+    new THREE.SphereGeometry(0.05, 12, 8),
+    new THREE.MeshBasicMaterial({ color: 0x46e6ff, fog: false }),
+    total,
+  );
+  let i = 0;
+  for (let x = 0; x < c.x; x++)
+    for (let y = 0; y < c.y; y++)
+      for (let z = 0; z < c.z; z++) { ddgi.probePosition(x, y, z, v); m.setPosition(v); inst.setMatrixAt(i++, m); }
+  inst.instanceMatrix.needsUpdate = true;
+  inst.frustumCulled = false;
+  scene.add(inst);
+  console.log('[probes] DDGI probe grid:', c.x + '×' + c.y + '×' + c.z, '=', total, 'probes (spheres)');
 }
 
 // ?captor : auto-fire a captor return shortly after load (for headless capture).
@@ -1039,6 +1074,12 @@ function bakeOnce() {
 const frameClock = new THREE.Clock();
 function tick() {
   const dt = Math.min(frameClock.getDelta(), 0.05);
+  if (paused) {                          // ESC pause — freeze every update (captor timer included), just hold the frame
+    try { if (inspectView.isOpen) inspectView.render(dt); else if (DEBUG) renderer.render(scene, camera); else post.render(dt); } catch (e) {}
+    input.endFrame();
+    requestAnimationFrame(tick);
+    return;
+  }
   try {
 
   const uiBlocking = inspectView.isOpen || inventory.isOpen;
@@ -1172,8 +1213,6 @@ function tick() {
     if (input.isDown('ArrowDown')) inventory.panel.scrollTop += 10;
     if (input.isDown('ArrowUp')) inventory.panel.scrollTop -= 10;
   }
-  if (input.wasPressed('KeyT')) captor.trigger();  // debug: trigger a return
-
   captor.update(dt);
   if (hidden) {                         // peering out at the wardrobe doors
     _lookDummy.position.copy(camera.position);
